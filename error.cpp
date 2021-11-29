@@ -4,10 +4,12 @@
 
 using namespace std;
 
-void err_text(const char *inp) {
+int char_count = 0;
+
+int err_text(const char *inp) {
     fstream myFile;
     string line, s = "";
-    int line_counter = 0;
+    int line_counter = 0, err_text = 0;
 
     myFile.open(inp, ios::in);
     if (myFile.is_open()) {
@@ -21,9 +23,11 @@ void err_text(const char *inp) {
                     for (int j = 0; j < size_of_array; j++) {
                         if (s == letter[j]) {
                             j = size_of_array;
+                            char_count++;
                         }
                         else if (j == (size_of_array - 1)) {
                             cout<<"Error AB: Unrecognize character "<<line[i]<<" on line "<<line_counter<<"\n";
+                            err_text++;
                         };
                     };
                 };
@@ -33,12 +37,13 @@ void err_text(const char *inp) {
 
         myFile.close();
     };
+    return err_text, char_count;
 };
 
-void err_morse(const char *inp) {
+int err_morse(const char *inp) {
     fstream myFile;
     string line, s_temp = "";
-    int line_counter = 0, space_counter = 0, j = 0;
+    int line_counter = 0, space_counter = 0, err_morse = 0, j = 0;
 
     myFile.open(inp, ios::in);
     if (myFile.is_open()) {
@@ -56,6 +61,7 @@ void err_morse(const char *inp) {
                         space_counter++;
                         if (space_counter == 2) {
                             cout<<"Error AB: Extra blankspace on line "<<line_counter<<"\n";
+                            err_morse++;
                             space_counter = 0; 
                         };
                     }
@@ -66,12 +72,14 @@ void err_morse(const char *inp) {
                     for (int j = 0; j < size_of_array; j++) {
                         if (s_temp.length() > 7) {
                             cout<<"Error AB: Invalid Morse code "<<s_temp<<" on line "<<line_counter<<"\n";
+                            err_morse++;
                             s_temp = "";
                             j = size_of_array;
                         }
 
                         else if (s_temp != morse[j] && j == (size_of_array - 1) ) {
                                 cout<< "Error AB: Invalid Morse code "<<s_temp<<" on line "<<line_counter<<"\n";
+                                err_morse++;
                                 s_temp = "";
                         }
                     
@@ -85,4 +93,5 @@ void err_morse(const char *inp) {
         };
         myFile.close();
     };
+    return err_morse;
 };
