@@ -61,10 +61,16 @@ as a number */
 int year, month, day, 
 hours, minutes, seconds;
 
+/* A local variable detect error 
+in the command line */ 
+int error = 0, errText = 0;
+
 /* Local variables store the name of 
 input and output file without extension */
 char new_inp[50], new_outp[50];
 
+clock_t t;
+double time_taken;
 /* Perform -h command */
 void h_command(){
     FILE *fptr;
@@ -88,22 +94,47 @@ void h_command(){
 /* Perform -t command */
 void t_command(char **s){
     const char *inp, *outp;
+    FILE *fp;
+    fp = fopen(s[1], "r");
+    t = clock();
+ 
+
+    if (fopen(s[1],"r") == NULL) {
+        printf("Error XX: %s could not be opened\n", s[1]);
+        error = 1;
+        return ;
+    };
+    fclose(fp);
 
     inp = s[1];
     outp = s[2];
     
     text_morseFILE(inp, outp);
-    err_text(inp);
+    errText, char_count = err_text(inp);
+
+    t = clock() - t;
+    time_taken = ((double) t)/CLOCKS_PER_SEC;
 }
 
 void m_command(char **s){
     const char *inp, *outp;
+    t = clock();
+
+    if (fopen(s[1],"r") == NULL) {
+        printf("Error XX: %s could not be opened\n", s[1]);
+        error = 1;
+
+        return ;
+    };
 
     inp = s[1];
     outp = s[2];
     
     morse_textFILE(inp, outp);
     err_morse(inp);
+
+    t = clock() - t;
+    time_taken = ((double) t)/CLOCKS_PER_SEC;
 }
 
 // print out date and time
@@ -251,16 +282,49 @@ void rename_log(char **s){
 
 /* Perform -c command */
 void c_command(char **s){   
-    FILE *fp;
+    FILE *fp, *finp;
+    int m_mis = 1, word_count = 0, char_count = 0;
+    char c;
+
+
+    finp = fopen(s[1], "r");
+    c = fgetc(finp);
     
+    while (c != EOF)
+        {   
+            if (c != ' ') {
+                char_count++;
+            };
+            if ( 'a'<=c && c <= 'z'){
+                m_mis = 0;
+                word_count ++;
+            }
+            c = fgetc(finp);
+        }
+    if(m_mis == 1){
+        m_command(s);
+    }
+    else{
+        t_command(s);
+    }
+    if(error == 1){
+        return;
+    }
+
     /* The initial log file of -c flag */
     fp = fopen ("data.log", "w");
 
     fprintf(fp, "Input file: %s\n", s[1]);  /* Get name of the input file */
     fprintf(fp, "Output file: %s\n", s[2]); /* Get name of the output file */
     
+
     /* Print date and time to data.log file */
     current_time(fp);  
+
+    fprintf(fp, "Duration [seconds]: %f\n", time_taken);
+    fprintf(fp, "Word count in input file: %d\n", word_count);
+    fprintf(fp, "Words with error: %d\n", errText);
+    fprintf(fp, "Total numbers of characters: %d\n", char_count);
 
     fclose(fp);
 
@@ -270,7 +334,7 @@ void c_command(char **s){
 
 /* Perform the command line
 or detect errors in the command line */
-int error = 0;
+
 void option_error(int n, char **s){
     int m_mis = 0;
     
@@ -282,12 +346,23 @@ void option_error(int n, char **s){
     }
 
     /* perform -h flag */
-    else if (!(strcmp(s[n - 1],"-h"))){
+    else if (n == 2 && !(strcmp(s[n - 1],"-h"))){
         h_command();
+    }
+    else if(n > 2 && !(strcmp(s[n - 1], "-h"))){
+        printf("Type “morse –h” for help");
+    }
+
+    else if (n == 3 && (strcmp(s[n - 1], "-c")
+    && strcmp(s[n - 1], "-m")
+    && strcmp(s[n - 1], "-t"))){
+        c_command(s);
     }
 
     /* error: missing arguments */
-    else if(n < 4){
+    else if(n < 4 && (!strcmp(s[n - 1], "-t")
+    || !strcmp(s[n - 1], "-m")
+    || !strcmp(s[n - 1], "-c"))){
         printf("Error XX: Missing arguments. Type “morse –h” for help"); 
         error = 1;
     }
@@ -330,8 +405,7 @@ void option_error(int n, char **s){
 
 int main(int argc, char *argv[]){
     // int i, t_mis = 0, m_mis = 0, c_mis = 0;
-    clock_t t;
-    t = clock();
+    
 
     /* Peform the command line or
     detect errors in the command line */
@@ -342,10 +416,6 @@ int main(int argc, char *argv[]){
         return 1;
     }
 
-    t = clock() - t;
-    double time_taken = ((double)t) /CLOCKS_PER_SEC;
-
-    printf("the program took %f seconds to execute \n", time_taken);
-
     return 0;
+
 }
