@@ -95,44 +95,80 @@ void h_command(){
 void t_command(char **s){
     const char *inp, *outp;
     FILE *fp;
+    char ans;
+    int ansn = 1;
     fp = fopen(s[1], "r");
     t = clock();
  
+    inp = s[1];
+    outp = s[2];
 
     if (fopen(s[1],"r") == NULL) {
         printf("Error XX: %s could not be opened\n", s[1]);
         error = 1;
-        return ;
+    }
+
+    else {
+        if (fopen(s[2], "r") != NULL){
+            printf("Warning: %s already exists. Do you wish to overwrite (y, n)? ", s[2]);
+            ans = getchar();
+            ansn = 0;
+            if (ans == 'y'){
+                ansn = 1;
+            }
+            else{
+                error = 1;
+            }
+        }
+        if (ansn == 1) {
+            text_morseFILE(inp, outp);
+            err_textF(inp);
+        }
     };
+
     fclose(fp);
 
-    inp = s[1];
-    outp = s[2];
     
-    text_morseFILE(inp, outp);
-    errText, char_count = err_text(inp);
-
     t = clock() - t;
     time_taken = ((double) t)/CLOCKS_PER_SEC;
 }
 
 void m_command(char **s){
     const char *inp, *outp;
+    FILE *fp;
+    char ans;
+    int ansn = 1;
+    fp = fopen(s[1], "r");
     t = clock();
+ 
+    inp = s[1];
+    outp = s[2];
 
     if (fopen(s[1],"r") == NULL) {
         printf("Error XX: %s could not be opened\n", s[1]);
         error = 1;
+    }
 
-        return ;
+    else {
+        if (fopen(s[2], "r") != NULL){
+            printf("Warning: %s already exists. Do you wish to overwrite (y, n)? ", s[2]);
+            ans = getchar();
+            ansn = 0;
+            if (ans == 'y'){
+                ansn = 1;
+            }
+            else{
+                error = 1;
+            }
+        }
+        if (ansn == 1) {
+            morse_textFILE(inp, outp);
+            err_morse(inp);
+        }
     };
 
-    inp = s[1];
-    outp = s[2];
+    fclose(fp);
     
-    morse_textFILE(inp, outp);
-    err_morse(inp);
-
     t = clock() - t;
     time_taken = ((double) t)/CLOCKS_PER_SEC;
 }
@@ -244,7 +280,7 @@ void rm_extension(char *s, char *s1){
 }
 
 /* Rename log file of -c flag */
-void rename_log(char **s){
+void rename_log(char **s) {
     
     char old_name[] = "data.log";
     
@@ -281,33 +317,46 @@ void rename_log(char **s){
 }
 
 /* Perform -c command */
-void c_command(char **s){   
+void c_command(char **s) { 
     FILE *fp, *finp;
-    int m_mis = 1, word_count = 0, char_count = 0;
+    int m_mis = 1, letter_count = 0, char_count = 0,
+    pre_space = 0, first_time = 0, word_count = 0;
     char c;
-
 
     finp = fopen(s[1], "r");
     c = fgetc(finp);
     
-    while (c != EOF)
-        {   
-            if (c != ' ') {
-                char_count++;
-            };
-            if ( 'a'<=c && c <= 'z'){
-                m_mis = 0;
-                word_count ++;
-            }
-            c = fgetc(finp);
-        }
-    if(m_mis == 1){
+    while (c != EOF) {
+        if (c != ' ' && c != '\n') {
+            char_count++;
+        };
+            
+        if ((pre_space == 1 || first_time == 0) 
+        && (('a'<=c && c <= 'z') || ('A' <= c && c <= 'Z'))){
+            word_count++;
+            first_time = 1;
+            pre_space = 0;
+        };
+            
+        if (c == ' ' || c == '\n') {
+            pre_space = 1;
+        };
+
+        if (c != '.' && c != '/' && c != '-' && c != ' ' && c != '\n') {
+            m_mis = 0;
+            letter_count ++;
+        };
+
+        c = fgetc(finp);
+    };
+
+    if (m_mis == 1)
         m_command(s);
-    }
-    else{
+    
+    else 
         t_command(s);
-    }
-    if(error == 1){
+    
+    if (error == 1) {
         return;
     }
 
@@ -317,17 +366,16 @@ void c_command(char **s){
     fprintf(fp, "Input file: %s\n", s[1]);  /* Get name of the input file */
     fprintf(fp, "Output file: %s\n", s[2]); /* Get name of the output file */
     
-
     /* Print date and time to data.log file */
     current_time(fp);  
 
     fprintf(fp, "Duration [seconds]: %f\n", time_taken);
     fprintf(fp, "Word count in input file: %d\n", word_count);
-    fprintf(fp, "Words with error: %d\n", errText);
-    fprintf(fp, "Total numbers of characters: %d\n", char_count);
+    fprintf(fp, "Word with error: %d\n", errchar);
+    fprintf(fp, "Total number of characters: %d\n", char_count);
 
     fclose(fp);
-
+    fclose(finp);
     /* Rename data.log file */
     rename_log(s);
 }

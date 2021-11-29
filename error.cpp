@@ -1,15 +1,17 @@
 #include <fstream>
 #include <string>
-#include "test.cpp"
+#include "translator.cpp"
 
 using namespace std;
 
-int char_count = 0;
+int trchar = 0;     //Counter for translated characters.
+int errchar = 0;   //Counter for error characters.
 
-int err_text(const char *inp) {
+int err_textF(const char *inp) {
+ 
     fstream myFile;
     string line, s = "";
-    int line_counter = 0, err_text = 0;
+    int line_counter = 0;
 
     myFile.open(inp, ios::in);
     if (myFile.is_open()) {
@@ -23,11 +25,12 @@ int err_text(const char *inp) {
                     for (int j = 0; j < size_of_array; j++) {
                         if (s == letter[j]) {
                             j = size_of_array;
-                            char_count++;
+                            trchar++;
                         }
                         else if (j == (size_of_array - 1)) {
                             cout<<"Error AB: Unrecognize character "<<line[i]<<" on line "<<line_counter<<"\n";
-                            err_text++;
+                            errchar++;
+                            
                         };
                     };
                 };
@@ -37,7 +40,6 @@ int err_text(const char *inp) {
 
         myFile.close();
     };
-    return err_text, char_count;
 };
 
 int err_morse(const char *inp) {
@@ -50,7 +52,7 @@ int err_morse(const char *inp) {
         while (getline(myFile, line)) {
 
             line_counter++;
-
+            
             for (int i = 0; i < line.length(); i++) {
                 if (line[i] == '.' || line[i] == '-') {
                     s_temp += line[i];
@@ -60,7 +62,7 @@ int err_morse(const char *inp) {
                     if (line[i] == ' ') {
                         space_counter++;
                         if (space_counter == 2) {
-                            cout<<"Error AB: Extra blankspace on line "<<line_counter<<"\n";
+                            cout<<"Error 01: Extra blankspace on line "<<line_counter<<"\n";
                             err_morse++;
                             space_counter = 0; 
                         };
@@ -71,14 +73,14 @@ int err_morse(const char *inp) {
 
                     for (int j = 0; j < size_of_array; j++) {
                         if (s_temp.length() > 7) {
-                            cout<<"Error AB: Invalid Morse code "<<s_temp<<" on line "<<line_counter<<"\n";
+                            cout<<"Error 02: Invalid Morse code "<<s_temp<<" on line "<<line_counter<<"\n";
                             err_morse++;
                             s_temp = "";
                             j = size_of_array;
                         }
 
                         else if (s_temp != morse[j] && j == (size_of_array - 1) ) {
-                                cout<< "Error AB: Invalid Morse code "<<s_temp<<" on line "<<line_counter<<"\n";
+                                cout<< "Error 03: Invalid Morse code "<<s_temp<<" on line "<<line_counter<<"\n";
                                 err_morse++;
                                 s_temp = "";
                         }
@@ -90,8 +92,17 @@ int err_morse(const char *inp) {
                     };
                 };
             };
+            s_temp = "";
         };
         myFile.close();
     };
     return err_morse;
 };
+
+// int main(){
+
+//     const char* inp = "input.txt";
+
+//     err_textF(inp);
+//     cout<<"Char counter: "<<trchar<<"\nError counter: "<<errchar; 
+// }
